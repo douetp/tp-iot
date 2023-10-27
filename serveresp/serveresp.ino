@@ -150,11 +150,11 @@ void setup() {
     // have detected a new device.  Specify that we want active scanning and start the
     // scan to run for 5 seconds.
     NimBLEScan *pBLEScan = NimBLEDevice::getScan();
-    NimBLEScan.setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-    NimBLEScan.setInterval(1349);
-    NimBLEScan.setWindow(449);
-    NimBLEScan.setActiveScan(true);
-    NimBLEScan.start(5, false);
+    pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+    pBLEScan->setInterval(1349);
+    pBLEScan->setWindow(449);
+    pBLEScan->setActiveScan(true);
+    pBLEScan->start(5, false);
     client.publish("/info/swag", "Bonjour voici nos supers infos youhou"); 
     Serial.println("published");
     
