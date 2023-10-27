@@ -2,8 +2,7 @@
 #include <LoRa.h>
 #include <PubSubClient.h>
 #include <SPI.h>
-#include <BLEDevice.h>
-
+#include "NimBLEDevice.h"
 
 #define SCK 5
 #define MISO 19
@@ -22,12 +21,12 @@ static BLEUUID charUUID("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
 static boolean doConnect = false;
 static boolean connected = false;
 static boolean doScan = false;
-static BLERemoteCharacteristic *pRemoteCharacteristic;
-static BLEAdvertisedDevice *myDevice;
+static NimBLERemoteCharacteristic *pRemoteCharacteristic;
+static NimBLEAdvertisedDevice *myDevice;
 
 
 static void notifyCallback(
-        BLERemoteCharacteristic *pBLERemoteCharacteristic,
+        NimBLERemoteCharacteristic *pBLERemoteCharacteristic,
         uint8_t *pData,
         size_t length,
         bool isNotify) {
@@ -39,11 +38,11 @@ static void notifyCallback(
     Serial.println((char *) pData);
 }
 
-class MyClientCallback : public BLEClientCallbacks {
-    void onConnect(BLEClient *pclient) {
+class MyClientCallback : public NimBLEClientCallbacks {
+    void onConnect(NimBLEClient *pclient) {
     }
 
-    void onDisconnect(BLEClient *pclient) {
+    void onDisconnect(NimBLEClient *pclient) {
         connected = false;
         Serial.println("onDisconnect");
     }
@@ -53,7 +52,7 @@ bool connectToServer() {
     Serial.print("Forming a connection to ");
     Serial.println(myDevice->getAddress().toString().c_str());
 
-    BLEClient *pClient = BLEDevice::createClient();
+    NimBLEClient *pClient = NimBLEDevice::createClient();
     Serial.println(" - Created client");
 
     pClient->setClientCallbacks(new MyClientCallback());
@@ -63,7 +62,7 @@ bool connectToServer() {
             myDevice);  // if you pass BLEAdvertisedDevice instead of address, it will be recognized type of peer device address (public or private)
 
     // Obtain a reference to the service we are after in the remote BLE server.
-    BLERemoteService *pRemoteService = pClient->getService(serviceUUID);
+    NimBLERemoteService *pRemoteService = pClient->getService(serviceUUID);
     if (pRemoteService == nullptr) {
         pClient->disconnect();
         return false;
@@ -88,19 +87,19 @@ bool connectToServer() {
     return true;
 }
 
-class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
+class MyAdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks {
 /**
    * Called for each advertising BLE server.
    */
-    void onResult(BLEAdvertisedDevice advertisedDevice) {
+    void onResult(NimBLEAdvertisedDevice advertisedDevice) {
         Serial.print("BLE Advertised Device found: ");
         Serial.println(advertisedDevice.toString().c_str());
 
         // We have found a device, let us now see if it contains the service we are looking for.
         if (advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(serviceUUID)) {
 
-            BLEDevice::getScan()->stop();
-            myDevice = new BLEAdvertisedDevice(advertisedDevice);
+            NimBLEDevice::getScan()->stop();
+            myDevice = new NimBLEAdvertisedDevice(advertisedDevice);
             doConnect = true;
             doScan = true;
 
@@ -127,7 +126,7 @@ PubSubClient client(espClient);
 void setup() {
     Serial.begin(9600);
     Serial.println("Starting Arduino BLE Client application...");
-    BLEDevice::init("");
+    NimBLEDevice::init("");
     WiFi.begin(ssid, pass);
     while (WiFi.status () != WL_CONNECTED) { 
       delay (500);
@@ -150,12 +149,12 @@ void setup() {
     // Retrieve a Scanner and set the callback we want to use to be informed when we
     // have detected a new device.  Specify that we want active scanning and start the
     // scan to run for 5 seconds.
-    BLEScan *pBLEScan = BLEDevice::getScan();
-    pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-    pBLEScan->setInterval(1349);
-    pBLEScan->setWindow(449);
-    pBLEScan->setActiveScan(true);
-    pBLEScan->start(5, false);
+    NimBLEScan *pBLEScan = NimBLEDevice::getScan();
+    NimBLEScan.setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+    NimBLEScan.setInterval(1349);
+    NimBLEScan.setWindow(449);
+    NimBLEScan.setActiveScan(true);
+    NimBLEScan.start(5, false);
     client.publish("/info/swag", "Bonjour voici nos supers infos youhou"); 
     Serial.println("published");
     
@@ -233,7 +232,7 @@ void loop() {
         //pRemoteCharacteristic->writeValue(meteoString.c_str(), meteoString.length());
         
     } else if (doScan) {
-        BLEDevice::getScan()->start(
+        NimBLEDevice::getScan()->start(
                 0);  // this is just example to start scan after disconnect, most likely there is better way to do it in arduino
     }
   delay (1000);
